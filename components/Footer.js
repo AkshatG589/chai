@@ -5,7 +5,7 @@ import { Github, Linkedin, Twitter, Mail } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-white/10 backdrop-blur-xl border-t border-white/20 text-white border-2">
+    <footer className="w-full bg-white/10 backdrop-blur-xl border-t border-white/20 text-white">
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
 
         {/* ✅ Brand Info */}

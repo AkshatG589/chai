@@ -13,6 +13,7 @@ export default function Home() {
       <Intro />
       <div className="bg-white min-h-1 opacity-50"></div>
       <AboutUs />
+      <div className="bg-white min-h-1 opacity-50"></div>
     </>
   );
 }

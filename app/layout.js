@@ -3,6 +3,9 @@ import "./globals.css";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 
+// ✅ Clerk Provider Import
+import { ClerkProvider } from "@clerk/nextjs";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -20,26 +23,28 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body
-  className={`${geistSans.variable} ${geistMono.variable} min-h-screen w-full bg-black text-white flex flex-col`}
->
-  {/* ✅ Navbar */}
-  <NavBar />
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} min-h-screen w-full bg-black text-white flex flex-col`}
+        >
+          {/* ✅ Navbar */}
+          <NavBar />
 
-  {/* ✅ Background Wrapper + Content */}
-  <main
-    className="relative w-full flex-1 pt-20
-    bg-[#000000] 
-    bg-[radial-gradient(#ffffff33_1px,#00091d_1px)] 
-    bg-[size:20px_20px]"
-  >
-    {children}
-  </main>
+          {/* ✅ Background Wrapper + Content */}
+          <main
+            className="relative w-full flex-1 pt-20
+            bg-[#000000] 
+            bg-[radial-gradient(#ffffff33_1px,#00091d_1px)] 
+            bg-[size:20px_20px]"
+          >
+            {children}
+          </main>
 
-  {/* ✅ Footer now sticks perfectly at bottom */}
-  <Footer />
-</body>
-    </html>
+          {/* ✅ Footer */}
+          <Footer />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
