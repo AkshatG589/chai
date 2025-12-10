@@ -18,38 +18,40 @@ import Settings from "@/utility/user/sections/Settings";
 import UserSkeleton from "@/components/UserSkeleton";
 import NotFound from "@/components/NotFound";
 
+// import MASTER MODAL here
+import EditProfileModal from "@/utility/user/Edit/EditProfileModal";
+
 export default function Page({ params }) {
-  const resolved = React.use(params); // unwrap params promise
+  const resolved = React.use(params);
   const username = resolved.username;
   const { getToken } = useAuth();
 
-  const [user, setUser] = useState(null); // clerk + isOwner
-  const [extra, setExtra] = useState(null); // public extra profile
+  const [user, setUser] = useState(null);
+  const [extra, setExtra] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false); // ✅ track 404
+  const [notFound, setNotFound] = useState(false);
+
+  // 🔥 Global modal control
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     async function fetchAll() {
       try {
         const token = await getToken({ template: "default" });
 
-        // 1) Clerk user + isOwner
         const userData = await getUser(username, token);
-
         if (!userData?.user) {
-          setNotFound(true); // user doesn't exist
+          setNotFound(true);
           return;
         }
-
         setUser(userData);
 
-        // 2) Public Extra profile
         const extraData = await getPublicExtraProfile(username);
         setExtra(extraData?.profile ?? null);
 
       } catch (err) {
         console.error("Error loading profile:", err);
-        setNotFound(true); // show 404 if error occurs
+        setNotFound(true);
       } finally {
         setLoading(false);
       }
@@ -58,38 +60,36 @@ export default function Page({ params }) {
     fetchAll();
   }, [username, getToken]);
 
-  // 🔹 Loading skeleton
   if (loading) return <UserSkeleton />;
-
-  // 🔹 User not found
   if (notFound) return <NotFound />;
 
   return (
     <div className="w-full flex flex-col items-center gap-10 pb-20">
 
+      {/* 🔥 GLOBAL EDIT MODAL (top level, independent of sections) */}
+      <EditProfileModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        data={extra}
+      />
+
       {/* Hero Section */}
       <UserHero user={user} extra={extra} />
 
-      {/* All Profile Sections (Only show if extra profile exists) */}
+      {/* Profile Sections */}
       {extra && (
         <div className="w-full max-w-4xl flex flex-col gap-10 px-4">
 
-          <About extra={extra} />
+          {/* Only About triggers Edit Modal */}
+          <About extra={extra} isOwner={user.isOwner} onEditOpen={() => setEditOpen(true)} />
 
           <Education education={extra.education} />
-
           <Skills skills={extra.skills} />
-
           <Languages languages={extra.languages} />
-
-          <Hobbies hobbies={extra.hobbies,user.isOwner} />
-
+          <Hobbies hobbies={extra.hobbies} />
           <Links links={extra.links} />
-
           <Payments payment={extra.payment} />
-
           <Settings settings={extra.settings} />
-
         </div>
       )}
     </div>
