@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const Razorpay = require("razorpay");
+const crypto = require("crypto");
 const Payment = require("../models/Payment");
 const UserExtra = require("../models/UserExtra");
 const getClerkUser = require("../middleware/getClerkUser");
+const checkOwner = require("../middleware/checkOwner");
 const { users } = require("@clerk/clerk-sdk-node");  // Clerk backend SDK
 
 router.post("/create-order", getClerkUser, async (req, res) => {
@@ -92,9 +94,9 @@ router.post("/create-order", getClerkUser, async (req, res) => {
     });
   }
 });
+
 // ------------------------------
-// VERIFY PAYMENT API
-// POST /api/payments/verify
+// VERIFY PAYMENT
 // ------------------------------
 router.post("/verify", async (req, res) => {
   try {
@@ -103,36 +105,23 @@ router.post("/verify", async (req, res) => {
       razorpay_order_id,
       razorpay_signature,
       paymentRecordId,
-      receiverId   // clerk userId of receiver
+      receiverId
     } = req.body;
 
-    // ---------------------- Validate ----------------------
     if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing payment verification data",
-      });
+      return res.status(400).json({ success: false, message: "Missing payment verification data" });
     }
 
-    // ---------------------- Get saved payment record ----------------------
     const payment = await Payment.findById(paymentRecordId);
 
     if (!payment) {
-      return res.status(404).json({
-        success: false,
-        message: "Payment record not found",
-      });
+      return res.status(404).json({ success: false, message: "Payment record not found" });
     }
 
-    // ---------------------- Verify Order ID Match ----------------------
     if (payment.razorpayOrderId !== razorpay_order_id) {
-      return res.status(400).json({
-        success: false,
-        message: "Order ID mismatch",
-      });
+      return res.status(400).json({ success: false, message: "Order ID mismatch" });
     }
 
-    // ---------------------- Get Receiver Razorpay Secret ----------------------
     const receiverExtra = await UserExtra.findOne({ clerkUserId: receiverId });
 
     if (!receiverExtra?.payment?.razorpay?.keySecret) {
@@ -144,7 +133,6 @@ router.post("/verify", async (req, res) => {
 
     const keySecret = receiverExtra.payment.razorpay.keySecret;
 
-    // ---------------------- Validate Signature ----------------------
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
@@ -152,25 +140,17 @@ router.post("/verify", async (req, res) => {
       .update(body.toString())
       .digest("hex");
 
-    const isValid = expectedSignature === razorpay_signature;
-
-    if (!isValid) {
+    if (expectedSignature !== razorpay_signature) {
       payment.status = "failed";
       await payment.save();
-
-      return res.status(400).json({
-        success: false,
-        message: "Payment signature mismatch",
-      });
+      return res.status(400).json({ success: false, message: "Payment signature mismatch" });
     }
 
-    // ---------------------- Mark Success ----------------------
     payment.status = "success";
     payment.razorpayPaymentId = razorpay_payment_id;
     payment.razorpaySignature = razorpay_signature;
     await payment.save();
 
-    // ---------------------- Response ----------------------
     return res.json({
       success: true,
       message: "Payment verified successfully",
@@ -179,11 +159,61 @@ router.post("/verify", async (req, res) => {
 
   } catch (error) {
     console.error("Payment Verify Error:", error);
-    res.status(500).json({
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// ------------------------------
+// GET ALL PAYMENTS FOR LOGGED-IN USER
+// GET /api/payments/my-payments
+// ------------------------------
+router.get("/:username/my-payments", getClerkUser, checkOwner, async (req, res) => {
+  try {
+    const { username } = req.params;
+    const requesterId = req.clerkUserId;   // from getClerkUser
+    const isOwner = req.isOwner;           // from checkOwner
+
+    // -------------------------------------
+    // 1️⃣ Get user (receiver) Clerk ID
+    // -------------------------------------
+    const receiverList = await users.getUserList({
+      username: [username],
+    });
+
+    if (!receiverList || receiverList.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const targetClerkId = receiverList[0].id; // profile's owner
+
+    // -------------------------------------
+    // 2️⃣ Fetch payments
+    // -------------------------------------
+
+    // Payments sent by this user
+    const sentPayments = await Payment.find({ sender: targetClerkId })
+      .sort({ createdAt: -1 });
+
+    // Payments received by this user
+    const receivedPayments = await Payment.find({ receiver: targetClerkId })
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      isOwner,            // useful for frontend
+      sentPayments,
+      receivedPayments,
+    });
+
+  } catch (error) {
+    console.error("Fetch Payments Error:", error);
+    return res.status(500).json({
       success: false,
       message: "Server error",
     });
   }
 });
-
 module.exports = router;
