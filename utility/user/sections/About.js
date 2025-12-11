@@ -4,7 +4,7 @@ import EditBtn from "@/components/EditBtn";
 
 export default function About({ extra, isOwner, onEditOpen }) {
   return (
-    <div className="relative p-6 rounded-xl bg-white/5 backdrop-blur-md shadow-lg border border-white/10">
+    <div className=" p-6 rounded-xl bg-white/5 backdrop-blur-md shadow-lg border border-white/10">
       
       {isOwner && (
         <EditBtn onClick={onEditOpen} />

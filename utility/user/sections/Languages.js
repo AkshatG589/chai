@@ -2,7 +2,7 @@ export default function Languages({ languages }) {
   if (!languages?.length) return null;
 
   return (
-    <div className="p-6 rounded-xl bg-white/5 border border-white/10">
+    <div className="p-6 rounded-xl bg-white/5 backdrop-blur-md shadow-lg border border-white/10">
       <h2 className="text-xl text-white font-medium mb-4">Languages</h2>
 
       {languages.map((l) => (

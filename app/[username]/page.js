@@ -79,7 +79,6 @@ export default function Page({ params }) {
       {/* Profile Sections */}
       {extra && (
         <div className="w-full max-w-4xl flex flex-col gap-10 px-4">
-
           {/* Only About triggers Edit Modal */}
           <About extra={extra} isOwner={user.isOwner} onEditOpen={() => setEditOpen(true)} />
 
@@ -88,7 +87,7 @@ export default function Page({ params }) {
           <Languages languages={extra.languages} />
           <Hobbies hobbies={extra.hobbies} />
           <Links links={extra.links} />
-          <Payments payment={extra.payment} />
+          <Payments payment={extra.payment} username={user.user.username} />
           <Settings settings={extra.settings} />
         </div>
       )}
