@@ -20,7 +20,7 @@ export default function PaymentCard({ payment }) {
   };
 
   return (
-    <div className="p-4 rounded-xl bg-white/5 border border-white/10 shadow-sm hover:bg-white/10 transition-all">
+    <div className="p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10">
 
       {/* TOP: Amount + status */}
       <div className="flex items-center justify-between">

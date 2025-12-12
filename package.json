@@ -13,8 +13,10 @@
   "dependencies": {
     "@clerk/nextjs": "^6.35.6",
     "axios": "^1.13.2",
+    "cloudinary": "^2.8.0",
     "dayjs": "^1.11.19",
     "lucide-react": "^0.555.0",
+    "multer": "^2.0.2",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0"

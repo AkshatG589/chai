@@ -70,18 +70,19 @@ export default function Navbar() {
             {isSignedIn && (
               <button
                 onClick={() => router.push(`/${username}/payments`)}
-                className={normalClass}
+                className={
+                  pathname === `/${username}/payments`
+                    ? activeClass
+                    : normalClass
+                }
               >
                 <Wallet size={18} /> My Payments
               </button>
             )}
           </div>
 
-          {/* MENU BUTTON FOR SMALL + MEDIUM + LARGE (EXCEPT XL) */}
-          <button
-            onClick={() => setOpen(true)}
-            className="lg:hidden text-white"
-          >
+          {/* MENU BUTTON (SM, MD, LG) */}
+          <button onClick={() => setOpen(true)} className="lg:hidden text-white">
             <Menu size={28} />
           </button>
         </div>
@@ -96,7 +97,7 @@ export default function Navbar() {
             className="fixed inset-0 z-40 bg-black/30"
           />
 
-          {/* MOBILE + MEDIUM SLIDE MENU */}
+          {/* SLIDE DRAWER */}
           <div className="fixed top-0 right-0 h-full w-[70%] sm:w-[60%] md:w-[40%] z-50 bg-white/10 backdrop-blur-xl border-l border-white/20 text-white flex flex-col transition-all duration-300">
 
             {/* HEADER */}
@@ -113,19 +114,35 @@ export default function Navbar() {
             {/* NAV LINKS */}
             <div className="flex flex-col gap-6 px-6 mt-12 text-lg">
 
-              <Link onClick={() => setOpen(false)} href="/" className={pathname === "/" ? activeClass : normalClass}>
+              <Link
+                onClick={() => setOpen(false)}
+                href="/"
+                className={pathname === "/" ? activeClass : normalClass}
+              >
                 <Home /> Home
               </Link>
 
-              <Link onClick={() => setOpen(false)} href="/about" className={pathname === "/about" ? activeClass : normalClass}>
+              <Link
+                onClick={() => setOpen(false)}
+                href="/about"
+                className={pathname === "/about" ? activeClass : normalClass}
+              >
                 <Info /> About
               </Link>
 
-              <Link onClick={() => setOpen(false)} href="/services" className={pathname === "/services" ? activeClass : normalClass}>
+              <Link
+                onClick={() => setOpen(false)}
+                href="/services"
+                className={pathname === "/services" ? activeClass : normalClass}
+              >
                 <Briefcase /> Services
               </Link>
 
-              <Link onClick={() => setOpen(false)} href="/contact" className={pathname === "/contact" ? activeClass : normalClass}>
+              <Link
+                onClick={() => setOpen(false)}
+                href="/contact"
+                className={pathname === "/contact" ? activeClass : normalClass}
+              >
                 <Phone /> Contact
               </Link>
 
@@ -136,14 +153,18 @@ export default function Navbar() {
                     setOpen(false);
                     router.push(`/${username}/payments`);
                   }}
-                  className={normalClass}
+                  className={
+                    pathname === `/${username}/payments`
+                      ? activeClass
+                      : normalClass
+                  }
                 >
                   <Wallet /> My Payments
                 </button>
               )}
             </div>
 
-            {/* ⭐ FOOTER USER BUTTON (SM + MD ONLY) */}
+            {/* ⭐ USER FOOTER */}
             {isSignedIn && (
               <div className="mt-auto px-6 mb-10">
                 <button
@@ -162,7 +183,7 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* AUTH FOOTER (ONLY WHEN LOGGED OUT) */}
+            {/* AUTH FOOTER */}
             {!isSignedIn && (
               <div className="mt-auto mb-10 px-6 flex flex-col gap-4">
                 <SignInButton>
