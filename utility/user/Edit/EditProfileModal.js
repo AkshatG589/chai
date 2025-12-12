@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { updateUserExtra } from "@/lib/api/user";
 
@@ -17,7 +17,30 @@ import EditSettings from "./EditSettings";
 export default function EditProfileModal({ open, onClose, data }) {
   const { getToken } = useAuth();
 
-  const [form, setForm] = useState(data);
+  // ⭐ DEFAULT SAFE STRUCTURE (Option B)
+  const defaultForm = {
+    bio: "",
+    city: "",
+    state: "",
+    country: "",
+    dob: "",
+    education: [],
+    skills: [],
+    languages: [],
+    hobbies: [],
+    links: {},
+    payments: {},
+    settings: {},
+  };
+
+  // ⭐ Merge defaults + incoming data safely
+  const [form, setForm] = useState({ ...defaultForm, ...data });
+
+  // If data updates (maybe async), update the form safely again
+  useEffect(() => {
+    setForm((prev) => ({ ...defaultForm, ...data }));
+  }, [data]);
+
   const [saving, setSaving] = useState(false);
 
   if (!open) return null;
@@ -30,63 +53,61 @@ export default function EditProfileModal({ open, onClose, data }) {
 
     setSaving(false);
     onClose();
-
-    // refresh profile route
     window.location.reload();
   };
 
   return (
-  <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[99999] 
-                  flex items-center justify-center px-3 py-6">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[99999] 
+                    flex items-center justify-center px-3 py-6">
 
-    <div className="w-full max-w-3xl bg-neutral-900 rounded-2xl 
-                    border border-white/20 shadow-2xl p-6
-                    max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-3xl bg-neutral-900 rounded-2xl 
+                      border border-white/20 shadow-2xl p-6
+                      max-h-[90vh] overflow-y-auto">
 
-      <h1 className="text-2xl font-semibold text-white mb-5">Edit Profile</h1>
+        <h1 className="text-2xl font-semibold text-white mb-5">Edit Profile</h1>
 
-      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
 
-        <EditAbout form={form} setForm={setForm} />
-        <EditEducation form={form} setForm={setForm} />
-        <EditSkills form={form} setForm={setForm} />
-        <EditLanguages form={form} setForm={setForm} />
-        <EditHobbies form={form} setForm={setForm} />
-        <EditLinks form={form} setForm={setForm} />
-        <EditPayments form={form} setForm={setForm} />
-        <EditSettings form={form} setForm={setForm} />
+          <EditAbout form={form} setForm={setForm} />
+          <EditEducation form={form} setForm={setForm} />
+          <EditSkills form={form} setForm={setForm} />
+          <EditLanguages form={form} setForm={setForm} />
+          <EditHobbies form={form} setForm={setForm} />
+          <EditLinks form={form} setForm={setForm} />
+          <EditPayments form={form} setForm={setForm} />
+          <EditSettings form={form} setForm={setForm} />
 
-      </div>
+        </div>
 
-      <div className="mt-6 flex justify-end gap-3">
+        <div className="mt-6 flex justify-end gap-3">
 
-        <button
-          onClick={onClose}
-          className="px-5 py-2 rounded-lg bg-neutral-700 text-white
-                     hover:bg-neutral-600 transition"
-        >
-          Cancel
-        </button>
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-lg bg-neutral-700 text-white
+                       hover:bg-neutral-600 transition"
+          >
+            Cancel
+          </button>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="px-5 py-2 rounded-lg bg-white text-black font-semibold 
-                     hover:bg-gray-200 transition flex items-center gap-2"
-        >
-          {saving ? (
-            <>
-              <div className="w-4 h-4 border-2 border-black 
-                              border-t-transparent animate-spin rounded-full"></div>
-              Saving…
-            </>
-          ) : (
-            "Save All"
-          )}
-        </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-5 py-2 rounded-lg bg-white text-black font-semibold 
+                       hover:bg-gray-200 transition flex items-center gap-2"
+          >
+            {saving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-black 
+                                border-t-transparent animate-spin rounded-full"></div>
+                Saving…
+              </>
+            ) : (
+              "Save All"
+            )}
+          </button>
 
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

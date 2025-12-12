@@ -18,28 +18,30 @@ router.post("/create-order", getClerkUser, async (req, res) => {
     }
 
     // ---------------------- SENDER ----------------------
-    const senderId = req.clerkUserId;    // Clerk ID from middleware
+    const senderId = req.clerkUserId; // Clerk ID from middleware
+
+    // Fetch sender's username from Clerk
+    const senderUser = await users.getUser(senderId);
+    const senderUsername = senderUser.username;
 
     // ---------------------- RECEIVER (Clerk) ----------------------
     const receiverList = await users.getUserList({
-      username: [receiverUsername],   // Clerk username
+      username: [receiverUsername],
     });
 
     if (!receiverList || receiverList.length === 0) {
       return res.status(404).json({ success: false, message: "Receiver not found" });
     }
 
-    const receiverId = receiverList[0].id;  // Clerk user ID of receiver
+    const receiverId = receiverList[0].id; // Clerk user ID
+    const finalReceiverUsername = receiverList[0].username; // REAL username from Clerk
 
     // ---------------------- FETCH RAZORPAY KEYS ----------------------
     const receiverExtra = await UserExtra.findOne({ clerkUserId: receiverId });
 
     if (
-      !receiverExtra ||
-      !receiverExtra.payment ||
-      !receiverExtra.payment.razorpay ||
-      !receiverExtra.payment.razorpay.keyId ||
-      !receiverExtra.payment.razorpay.keySecret
+      !receiverExtra?.payment?.razorpay?.keyId ||
+      !receiverExtra?.payment?.razorpay?.keySecret
     ) {
       return res.status(400).json({
         success: false,
@@ -56,19 +58,22 @@ router.post("/create-order", getClerkUser, async (req, res) => {
     });
 
     const order = await razorpay.orders.create({
-  amount: amount * 100,
-  currency: "INR",
-  receipt: "receipt_" + Date.now(),
-  notes: {
-    receiverUsername,
-    comment: comment || "",
-  },
-});
+      amount: amount * 100,
+      currency: "INR",
+      receipt: "receipt_" + Date.now(),
+      notes: {
+        receiverUsername: finalReceiverUsername,
+        senderUsername: senderUsername,
+        comment: comment || "",
+      },
+    });
 
     // ---------------------- SAVE PAYMENT ----------------------
     const paymentDoc = await Payment.create({
       sender: senderId,
+      senderUsername,                  // ✔ NEW FIELD
       receiver: receiverId,
+      receiverUsername: finalReceiverUsername, // ✔ NEW FIELD
       amount,
       comment: comment || "",
       method: "razorpay",
@@ -170,8 +175,18 @@ router.post("/verify", async (req, res) => {
 router.get("/:username/my-payments", getClerkUser, checkOwner, async (req, res) => {
   try {
     const { username } = req.params;
-    const requesterId = req.clerkUserId;   // from getClerkUser
-    const isOwner = req.isOwner;           // from checkOwner
+    const isOwner = req.isOwner;   // from checkOwner middleware
+
+    // -------------------------------------
+    // 🔐 0️⃣ Authorization Check
+    // -------------------------------------
+    if (!isOwner) {
+      return res.status(403).json({
+        success: false,
+        isOwner:false,
+        message: "Unauthorized access — you cannot view someone else's payments.",
+      });
+    }
 
     // -------------------------------------
     // 1️⃣ Get user (receiver) Clerk ID
@@ -187,23 +202,20 @@ router.get("/:username/my-payments", getClerkUser, checkOwner, async (req, res) 
       });
     }
 
-    const targetClerkId = receiverList[0].id; // profile's owner
+    const targetClerkId = receiverList[0].id;
 
     // -------------------------------------
-    // 2️⃣ Fetch payments
+    // 2️⃣ Fetch payments for this user ONLY
     // -------------------------------------
-
-    // Payments sent by this user
     const sentPayments = await Payment.find({ sender: targetClerkId })
       .sort({ createdAt: -1 });
 
-    // Payments received by this user
     const receivedPayments = await Payment.find({ receiver: targetClerkId })
       .sort({ createdAt: -1 });
 
     return res.json({
       success: true,
-      isOwner,            // useful for frontend
+      isOwner: true,
       sentPayments,
       receivedPayments,
     });
@@ -216,4 +228,6 @@ router.get("/:username/my-payments", getClerkUser, checkOwner, async (req, res) 
     });
   }
 });
+
+
 module.exports = router;

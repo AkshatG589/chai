@@ -18,7 +18,7 @@ import Settings from "@/utility/user/sections/Settings";
 import UserSkeleton from "@/components/UserSkeleton";
 import NotFound from "@/components/NotFound";
 
-// import MASTER MODAL here
+// MASTER EDIT MODAL
 import EditProfileModal from "@/utility/user/Edit/EditProfileModal";
 
 export default function Page({ params }) {
@@ -31,7 +31,7 @@ export default function Page({ params }) {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  // 🔥 Global modal control
+  // 🔥 Global edit modal controller
   const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function Page({ params }) {
   return (
     <div className="w-full flex flex-col items-center gap-10 pb-20">
 
-      {/* 🔥 GLOBAL EDIT MODAL (top level, independent of sections) */}
+      {/* 🔥 EDIT MODAL (global) */}
       <EditProfileModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
@@ -77,20 +77,28 @@ export default function Page({ params }) {
       <UserHero user={user} extra={extra} />
 
       {/* Profile Sections */}
-      {extra && (
-        <div className="w-full max-w-4xl flex flex-col gap-10 px-4">
-          {/* Only About triggers Edit Modal */}
-          <About extra={extra} isOwner={user.isOwner} onEditOpen={() => setEditOpen(true)} />
+      <div className="w-full max-w-4xl flex flex-col gap-10 px-4">
 
-          <Education education={extra.education} />
-          <Skills skills={extra.skills} />
-          <Languages languages={extra.languages} />
-          <Hobbies hobbies={extra.hobbies} />
-          <Links links={extra.links} />
-          <Payments payment={extra.payment} username={user.user.username} />
-          <Settings settings={extra.settings} />
-        </div>
-      )}
+        {/* 🔥 About should ALWAYS render (extra may be null) */}
+        <About
+          extra={extra}
+          isOwner={user.isOwner}
+          onEditOpen={() => setEditOpen(true)}
+        />
+
+        {/* Only render these sections if extra exists */}
+        {extra && (
+          <>
+            <Education education={extra.education} />
+            <Skills skills={extra.skills} />
+            <Languages languages={extra.languages} />
+            <Hobbies hobbies={extra.hobbies} />
+            <Links links={extra.links} />
+            <Payments payment={extra.payment} username={user.user.username} />
+            <Settings settings={extra.settings} />
+          </>
+        )}
+      </div>
     </div>
   );
 }

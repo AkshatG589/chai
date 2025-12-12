@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import EditBtn from "@/components/EditBtn";
 
 export default function UserHero({ user, extra }) {
   const { user: clerkUser, isOwner } = user;

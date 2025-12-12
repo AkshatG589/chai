@@ -7,9 +7,19 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
 
+    senderUsername: {
+      type: String,     // Clerk Username
+      default: "unknown",
+    },
+
     receiver: {
       type: String,     // Clerk User ID
       required: true,
+    },
+
+    receiverUsername: {
+      type: String,     // Clerk Username
+      default: "unknown",
     },
 
     amount: {
@@ -25,7 +35,7 @@ const paymentSchema = new mongoose.Schema(
 
     method: {
       type: String,
-      enum: ["razorpay"],   // 👈 Only Razorpay allowed
+      enum: ["razorpay"],
       default: "razorpay",
     },
 
@@ -35,18 +45,9 @@ const paymentSchema = new mongoose.Schema(
       default: "pending",
     },
 
-    // 🔹 Razorpay fields (required after verification)
-    razorpayOrderId: {
-      type: String,
-    },
-
-    razorpayPaymentId: {
-      type: String,
-    },
-
-    razorpaySignature: {
-      type: String,
-    },
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    razorpaySignature: String,
   },
   { timestamps: true }
 );
