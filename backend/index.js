@@ -27,14 +27,12 @@ connectToMongo();
 // Import Routes
 const findUserRoutes = require("./router/user/findUser");
 const UserExtraRoutes = require("./router/user/userExtra");
-const UserProjectRoutes = require("./router/user/UserProject");
 const UserAchievementRoutes = require("./router/user/achievements");
 const Payment = require("./router/payments");
-const Projects = require("./router/Projects");
+const Projects = require("./router/projects");
 // Use Routes
 app.use("/api/user", findUserRoutes);
 app.use("/api/extra",UserExtraRoutes);
-app.use("/api/projects",UserProjectRoutes);
 app.use("/api/achievements",UserAchievementRoutes);
 app.use("/api/payments",Payment);
 app.use("/api/projects", Projects);

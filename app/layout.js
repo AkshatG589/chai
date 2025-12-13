@@ -33,7 +33,7 @@ export default function RootLayout({ children }) {
 
           {/* ✅ Background Wrapper + Content */}
           <main
-            className="relative w-full flex-1 pt-20
+            className="relative w-full flex-1 pt-16
             bg-[#000000] 
             bg-[radial-gradient(#ffffff33_1px,#00091d_1px)] 
             bg-[size:20px_20px]"

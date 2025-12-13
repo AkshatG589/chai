@@ -1,249 +1,194 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { createProject, getProjectsByUsername } from "@/lib/api/projects";
+import {
+  createProject,
+  getProjectsByUsername,
+  updateProject,
+  deleteProject,
+} from "@/lib/api/projects";
+import { getUser } from "@/lib/api/user";
 
-export default function page({ params }) {
+import ProjectCard from "@/components/ui/ProjectCard";
+import ProjectModal from "@/components/ui/ProjectModal";
+import { Plus } from "lucide-react";
+
+export default function ProjectsPage({ params }) {
   const resolved = React.use(params);
   const username = resolved.username;
-  
+
   const { getToken } = useAuth();
 
   const [projects, setProjects] = useState([]);
-  const [modal, setModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
-  // Form fields
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [tech, setTech] = useState("");
-  const [tags, setTags] = useState("");
-  const [link, setLink] = useState("");
-  const [github, setGithub] = useState("");
-  const [image, setImage] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
 
-  // Fetch projects using username param
-  const fetchProjects = async () => {
-    if (!username) return;
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-    try {
-      const data = await getProjectsByUsername(username);
-      setProjects(data?.projects || []);
-      alert(data.data.success)
-    } catch (err) {
-      console.error("Error loading projects:", err);
-      setProjects([]);
-    }
-  };
-
+  // --------------------------------------------------
+  // LOAD USER + PROJECTS
+  // --------------------------------------------------
   useEffect(() => {
-    fetchProjects();
-  }, [username]);
+    async function load() {
+      try {
+        const token = await getToken();
 
-  // Submit project (authenticated)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+        const userRes = await getUser(username, token);
+        setIsOwner(Boolean(userRes?.isOwner));
 
-    try {
-      const token = await getToken(); // Clerk token
-
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", description);
-      formData.append("tech", JSON.stringify(tech.split(",")));
-      formData.append("tags", JSON.stringify(tags.split(",")));
-      formData.append("link", link);
-      formData.append("github", github);
-      if (image) formData.append("image", image);
-
-      await createProject(formData, token);
-
-      await fetchProjects();
-      setModal(false);
-      resetForm();
-    } catch (err) {
-      console.error("Create Project Error:", err);
+        const projectRes = await getProjectsByUsername(username);
+        setProjects(projectRes?.projects || []);
+      } catch (err) {
+        console.error("Load projects error:", err);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    setLoading(false);
+    load();
+  }, [username, getToken]);
+
+  // --------------------------------------------------
+  // CREATE / UPDATE PROJECT
+  // --------------------------------------------------
+  const handleSave = async (form) => {
+    try {
+      setSaving(true);
+      const token = await getToken();
+
+      const fd = new FormData();
+
+      Object.entries(form).forEach(([key, value]) => {
+        if (value === null || value === "" || value === undefined) return;
+
+        // tech & tags are ARRAYS now
+        if (key === "tech" || key === "tags") {
+          fd.append(key, JSON.stringify(value));
+        } else {
+          fd.append(key, value);
+        }
+      });
+
+      if (editing) {
+        await updateProject(username, editing._id, fd, token);
+      } else {
+        await createProject(fd, token);
+      }
+
+      const refreshed = await getProjectsByUsername(username);
+      setProjects(refreshed?.projects || []);
+
+      setModalOpen(false);
+      setEditing(null);
+    } catch (err) {
+      console.error("Save project error:", err);
+      alert("Something went wrong while saving the project.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setTech("");
-    setTags("");
-    setLink("");
-    setGithub("");
-    setImage(null);
+  // --------------------------------------------------
+  // DELETE PROJECT
+  // --------------------------------------------------
+  const handleDelete = async (project) => {
+    if (!confirm("Are you sure you want to delete this project?")) return;
+
+    try {
+      const token = await getToken();
+      await deleteProject(username, project._id, token);
+
+      setProjects((prev) => prev.filter((p) => p._id !== project._id));
+    } catch (err) {
+      console.error("Delete project error:", err);
+      alert("Failed to delete project.");
+    }
   };
 
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#0b0b0f] text-gray-200 p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen relative overflow-hidden">
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">
-            {username}&apos;s Projects
+      {/* 🌌 BACKGROUND GRADIENT (always visible) */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0b0b12] via-[#0f0f1a] to-black" />
+
+      {/* ✨ SOFT GLOW */}
+      <div className="absolute -top-32 -left-32 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[120px]" />
+      <div className="absolute top-1/3 -right-32 w-[300px] h-[300px] bg-indigo-500/20 rounded-full blur-[120px]" />
+
+      {/* 🧊 CONTENT */}
+      <div className="relative max-w-6xl mx-auto px-4 py-12">
+
+        {/* GLASS HEADER */}
+        <div className="mb-10 p-6 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-white">
+            @{username}&apos;s Projects
           </h1>
 
-          <button
-            onClick={() => setModal(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition rounded-md text-white"
-          >
-            + Create New Project
-          </button>
+          {isOwner && (
+            <button
+              onClick={() => setModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full
+                         bg-gradient-to-r from-purple-500 to-indigo-500
+                         text-white font-medium
+                         hover:opacity-90 transition"
+            >
+              <Plus size={16} />
+              New Project
+            </button>
+          )}
         </div>
 
-        {/* Project List */}
-        {projects.length === 0 ? (
-          <p className="text-gray-400">No projects yet.</p>
-        ) : (
+        {/* LOADING STATE */}
+        {loading && (
+          <div className="p-10 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 text-center text-gray-400 animate-pulse">
+            Loading projects...
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+        {!loading && projects.length === 0 && (
+          <div className="p-10 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 text-center text-gray-400">
+            No projects yet.
+          </div>
+        )}
+
+        {/* PROJECT GRID */}
+        {!loading && projects.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {projects.map((p) => (
-              <div
-                key={p._id}
-                className="bg-[#15151c] border border-gray-800 rounded-lg p-4 shadow-lg hover:shadow-xl transition"
-              >
-                {p.image && (
-                  <img
-                    src={p.image}
-                    className="w-full h-48 object-cover rounded-md mb-3"
-                    alt="project"
-                  />
-                )}
-
-                <h2 className="text-xl font-semibold">{p.title}</h2>
-                <p className="text-gray-400 text-sm mt-1">{p.description}</p>
-
-                <div className="mt-2 flex gap-2 flex-wrap">
-                  {p.tech?.map((t, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-1 bg-gray-800 rounded text-xs"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="mt-3 flex gap-3 text-sm">
-                  {p.link && (
-                    <a
-                      href={p.link}
-                      target="_blank"
-                      className="text-blue-400 hover:underline"
-                    >
-                      Live →
-                    </a>
-                  )}
-                  {p.github && (
-                    <a
-                      href={p.github}
-                      target="_blank"
-                      className="text-gray-400 hover:underline"
-                    >
-                      GitHub →
-                    </a>
-                  )}
-                </div>
-              </div>
+            {projects.map((project) => (
+              <ProjectCard
+                key={project._id}
+                project={project}
+                isOwner={isOwner}
+                onEdit={(p) => {
+                  setEditing(p);
+                  setModalOpen(true);
+                }}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}
+
+        {/* MODAL */}
+        <ProjectModal
+          open={modalOpen}
+          onClose={() => {
+            setModalOpen(false);
+            setEditing(null);
+          }}
+          onSubmit={handleSave}
+          initialData={editing}
+          loading={saving}
+        />
       </div>
-
-      {/* ---------------- MODAL ---------------- */}
-      {modal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#1a1a22] p-6 w-full max-w-lg rounded-lg shadow-lg border border-gray-700">
-
-            <h2 className="text-2xl font-bold mb-4">Create New Project</h2>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-
-              <input
-                type="text"
-                placeholder="Title"
-                className="w-full bg-[#111118] border border-gray-700 p-2 rounded"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-
-              <textarea
-                placeholder="Description"
-                className="w-full bg-[#111118] border border-gray-700 p-2 rounded"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-
-              <input
-                type="text"
-                placeholder="Technologies (comma separated)"
-                className="w-full bg-[#111118] border border-gray-700 p-2 rounded"
-                value={tech}
-                onChange={(e) => setTech(e.target.value)}
-              />
-
-              <input
-                type="text"
-                placeholder="Tags (comma separated)"
-                className="w-full bg-[#111118] border border-gray-700 p-2 rounded"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-              />
-
-              <input
-                type="text"
-                placeholder="Live Link"
-                className="w-full bg-[#111118] border border-gray-700 p-2 rounded"
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-              />
-
-              <input
-                type="text"
-                placeholder="GitHub Link"
-                className="w-full bg-[#111118] border border-gray-700 p-2 rounded"
-                value={github}
-                onChange={(e) => setGithub(e.target.value)}
-              />
-
-              <input
-                type="file"
-                accept="image/*"
-                className="w-full bg-[#111118] border border-gray-700 p-2 rounded"
-                onChange={(e) => setImage(e.target.files[0])}
-              />
-
-              <div className="flex justify-end gap-3 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setModal(false)}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white"
-                >
-                  {loading ? "Saving..." : "Save Project"}
-                </button>
-              </div>
-
-            </form>
-
-          </div>
-        </div>
-      )}
     </div>
   );
 }

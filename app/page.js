@@ -7,7 +7,6 @@ import AboutUs from "@/utility/home/AboutUs"
 export default function Home() {
   return (
     <>
-      
       <Hero />
       <div className="bg-white min-h-1 opacity-50"></div>
       <Intro />

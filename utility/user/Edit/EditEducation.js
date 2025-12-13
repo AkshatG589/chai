@@ -63,7 +63,7 @@ export default function EditEducation({ form, setForm }) {
     });
   };
 
-  // ⭐ Lucide Icon Mapping
+  // ⭐ Icon mapping
   const fieldIcon = {
     name: <User size={18} />,
     degree: <GraduationCap size={18} />,
@@ -80,7 +80,6 @@ export default function EditEducation({ form, setForm }) {
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-
       <h3 className="text-lg text-white font-semibold mb-4">Education</h3>
 
       {/* ------------------------ 10th ------------------------ */}
@@ -89,16 +88,15 @@ export default function EditEducation({ form, setForm }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {["name", "marks", "city", "state", "description"].map((field) => (
           <div key={field} className="flex flex-col gap-1">
-
-            <label className="text-gray-300 text-sm capitalize">
-              {field}
+            <label className="text-gray-300 text-sm">
+              {field === "name" ? "School Name" : field}
             </label>
 
             <div className="flex items-center bg-neutral-800 px-3 py-2 rounded border border-neutral-700">
               <span className="text-gray-400 mr-2">{fieldIcon[field]}</span>
 
               <input
-                placeholder={field}
+                placeholder={field === "name" ? "School Name" : field}
                 className="flex-1 bg-transparent text-white outline-none"
                 value={school10[field] ?? ""}
                 onChange={(e) =>
@@ -123,14 +121,15 @@ export default function EditEducation({ form, setForm }) {
         {["name", "marks", "stream", "city", "state", "description"].map(
           (field) => (
             <div key={field} className="flex flex-col gap-1">
-
-              <label className="text-gray-300 text-sm capitalize">{field}</label>
+              <label className="text-gray-300 text-sm">
+                {field === "name" ? "School Name" : field}
+              </label>
 
               <div className="flex items-center bg-neutral-800 px-3 py-2 rounded border border-neutral-700">
                 <span className="text-gray-400 mr-2">{fieldIcon[field]}</span>
 
                 <input
-                  placeholder={field}
+                  placeholder={field === "name" ? "School Name" : field}
                   className="flex-1 bg-transparent text-white outline-none"
                   value={school12[field] ?? ""}
                   onChange={(e) =>
@@ -180,17 +179,20 @@ export default function EditEducation({ form, setForm }) {
               "description",
             ].map((field) => (
               <div key={field} className="flex flex-col gap-1">
-
-                <label className="text-gray-300 text-sm capitalize">{field}</label>
+                <label className="text-gray-300 text-sm">
+                  {field === "name" ? "College Name" : field}
+                </label>
 
                 <div className="flex items-center bg-neutral-800 px-3 py-2 rounded border border-neutral-700">
                   <span className="text-gray-400 mr-2">{fieldIcon[field]}</span>
 
                   <input
-                    placeholder={field}
+                    placeholder={field === "name" ? "College Name" : field}
                     className="flex-1 bg-transparent text-white outline-none"
                     value={col[field] ?? ""}
-                    onChange={(e) => updateCollege(index, field, e.target.value)}
+                    onChange={(e) =>
+                      updateCollege(index, field, e.target.value)
+                    }
                   />
                 </div>
               </div>
