@@ -12,6 +12,7 @@ import {
   Phone,
   Wallet,
   UserCircle,
+  Users,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -47,11 +48,15 @@ export default function Navbar() {
             <Link href="/">Get Me a Chai</Link>
           </h1>
 
-          {/* DESKTOP MENU (ONLY ON LG+) */}
+          {/* DESKTOP MENU */}
           <div className="hidden lg:flex items-center gap-8 text-sm">
 
             <Link href="/" className={pathname === "/" ? activeClass : normalClass}>
               <Home size={16} /> Home
+            </Link>
+
+            <Link href="/profiles" className={pathname === "/profiles" ? activeClass : normalClass}>
+              <Users size={16} /> Profiles
             </Link>
 
             <Link href="/about" className={pathname === "/about" ? activeClass : normalClass}>
@@ -66,7 +71,7 @@ export default function Navbar() {
               <Phone size={16} /> Contact
             </Link>
 
-            {/* ⭐ My Payments */}
+            {/* MY PAYMENTS */}
             {isSignedIn && (
               <button
                 onClick={() => router.push(`/${username}/payments`)}
@@ -81,14 +86,14 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* MENU BUTTON (SM, MD, LG) */}
-          <button onClick={() => setOpen(true)} className="lg:hidden text-white">
+          {/* MOBILE MENU BUTTON */}
+          <button onClick={() => setOpen(true)} className="lg:hidden">
             <Menu size={28} />
           </button>
         </div>
       </nav>
 
-      {/* BACKDROP + DRAWER */}
+      {/* MOBILE DRAWER */}
       {open && (
         <>
           {/* BACKDROP */}
@@ -97,8 +102,8 @@ export default function Navbar() {
             className="fixed inset-0 z-40 bg-black/30"
           />
 
-          {/* SLIDE DRAWER */}
-          <div className="fixed top-0 right-0 h-full w-[70%] sm:w-[60%] md:w-[40%] z-50 bg-white/10 backdrop-blur-xl border-l border-white/20 text-white flex flex-col transition-all duration-300">
+          {/* DRAWER */}
+          <div className="fixed top-0 right-0 h-full w-[70%] sm:w-[60%] md:w-[40%] z-50 bg-white/10 backdrop-blur-xl border-l border-white/20 text-white flex flex-col">
 
             {/* HEADER */}
             <div className="flex justify-between items-center px-6 py-5 border-b border-white/20">
@@ -112,7 +117,7 @@ export default function Navbar() {
             </div>
 
             {/* NAV LINKS */}
-            <div className="flex flex-col gap-6 px-6 mt-12 text-lg">
+            <div className="flex flex-col gap-6 px-6 mt-10 text-lg">
 
               <Link
                 onClick={() => setOpen(false)}
@@ -120,6 +125,14 @@ export default function Navbar() {
                 className={pathname === "/" ? activeClass : normalClass}
               >
                 <Home /> Home
+              </Link>
+
+              <Link
+                onClick={() => setOpen(false)}
+                href="/profiles"
+                className={pathname === "/profiles" ? activeClass : normalClass}
+              >
+                <Users /> Profiles
               </Link>
 
               <Link
@@ -146,7 +159,7 @@ export default function Navbar() {
                 <Phone /> Contact
               </Link>
 
-              {/* ⭐ My Payments */}
+              {/* MY PAYMENTS */}
               {isSignedIn && (
                 <button
                   onClick={() => {
@@ -164,7 +177,7 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* ⭐ USER FOOTER */}
+            {/* USER FOOTER */}
             {isSignedIn && (
               <div className="mt-auto px-6 mb-10">
                 <button
@@ -176,7 +189,7 @@ export default function Navbar() {
                 >
                   <UserCircle size={26} />
                   <div>
-                    <p className="font-semibold text-white">{user.fullName}</p>
+                    <p className="font-semibold">{user.fullName}</p>
                     <p className="text-gray-300 text-sm">@{username}</p>
                   </div>
                 </button>

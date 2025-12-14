@@ -32,6 +32,18 @@ export default function ProjectModal({
 
   const [preview, setPreview] = useState(null);
 
+  /* 🔒 LOCK BODY SCROLL */
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   useEffect(() => {
     if (initialData) {
       setForm({
@@ -57,10 +69,17 @@ export default function ProjectModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9999] flex items-center justify-center px-4">
-      <div className="relative w-full max-w-xl p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/20 shadow-2xl">
+    <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md flex items-center justify-center px-3">
 
-        {/* Close */}
+      {/* 🧊 MODAL CONTAINER */}
+      <div
+        className="relative w-full max-w-xl
+                   max-h-[85vh] overflow-y-auto overscroll-contain
+                   rounded-2xl bg-white/5 backdrop-blur-xl
+                   border border-white/20 shadow-2xl p-6"
+      >
+
+        {/* ❌ CLOSE */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -79,7 +98,7 @@ export default function ProjectModal({
           }}
           className="space-y-5"
         >
-          {/* Title */}
+          {/* TITLE */}
           <Field
             icon={<FileText size={16} />}
             label="Project Title"
@@ -88,7 +107,7 @@ export default function ProjectModal({
             placeholder="My Awesome Project"
           />
 
-          {/* Description */}
+          {/* DESCRIPTION */}
           <Field
             icon={<Layers size={16} />}
             label="Description"
@@ -98,7 +117,7 @@ export default function ProjectModal({
             textarea
           />
 
-          {/* Tech Stack */}
+          {/* TECH */}
           <ChipInput
             label="Technologies Used"
             icon={<Code size={16} />}
@@ -115,7 +134,7 @@ export default function ProjectModal({
             }
           />
 
-          {/* Tags */}
+          {/* TAGS */}
           <ChipInput
             label="Tags"
             icon={<Tag size={16} />}
@@ -132,7 +151,7 @@ export default function ProjectModal({
             }
           />
 
-          {/* Links */}
+          {/* LINKS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field
               icon={<Link size={16} />}
@@ -150,7 +169,7 @@ export default function ProjectModal({
             />
           </div>
 
-          {/* Image */}
+          {/* IMAGE */}
           <div>
             <label className="text-sm text-gray-300 mb-2 flex items-center gap-2">
               <ImageIcon size={16} /> Project Image
@@ -172,7 +191,7 @@ export default function ProjectModal({
             />
           </div>
 
-          {/* Actions */}
+          {/* ACTIONS */}
           <div className="flex justify-end gap-3 pt-6">
             <button
               type="button"
@@ -196,13 +215,14 @@ export default function ProjectModal({
   );
 }
 
-/* ---------------- Field ---------------- */
+/* ---------------- FIELD ---------------- */
 function Field({ label, icon, value, onChange, placeholder, textarea }) {
   return (
     <div>
       <label className="text-sm text-gray-300 mb-1 flex items-center gap-2">
         {icon} {label}
       </label>
+
       {textarea ? (
         <textarea
           rows={3}
@@ -223,7 +243,7 @@ function Field({ label, icon, value, onChange, placeholder, textarea }) {
   );
 }
 
-/* ---------------- Chip Input ---------------- */
+/* ---------------- CHIP INPUT ---------------- */
 function ChipInput({ label, icon, values, placeholder, onAdd, onRemove }) {
   const [input, setInput] = useState("");
 
@@ -243,7 +263,8 @@ function ChipInput({ label, icon, values, placeholder, onAdd, onRemove }) {
         {values.map((v, i) => (
           <span
             key={i}
-            className="px-3 py-1 bg-neutral-800 rounded-full flex items-center gap-2 border border-neutral-700 text-sm"
+            className="px-3 py-1 bg-neutral-800 rounded-full
+                       flex items-center gap-2 border border-neutral-700 text-sm"
           >
             {v}
             <button

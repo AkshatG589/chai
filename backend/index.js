@@ -28,6 +28,7 @@ connectToMongo();
 const findUserRoutes = require("./router/user/findUser");
 const UserExtraRoutes = require("./router/user/userExtra");
 const UserAchievementRoutes = require("./router/user/achievements");
+const ClerkUser = require("./router/user/ClerkUser");
 const Payment = require("./router/payments");
 const Projects = require("./router/projects");
 // Use Routes
@@ -36,6 +37,7 @@ app.use("/api/extra",UserExtraRoutes);
 app.use("/api/achievements",UserAchievementRoutes);
 app.use("/api/payments",Payment);
 app.use("/api/projects", Projects);
+app.use("/api/clerkuser", ClerkUser);
 // Root route
 app.get("/", (req, res) => {
   res.send("Hello World! Backend is running 🚀");
