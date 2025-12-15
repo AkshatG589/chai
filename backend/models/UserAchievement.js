@@ -5,14 +5,40 @@ const userAchievementSchema = new mongoose.Schema(
     clerkUserId: {
       type: String,
       required: true,
+      index: true, // 🔥 fast user-based queries
     },
 
-    title: { type: String, required: true },
-    issuer: String,
-    year: Number,
-    certificateUrl: String,
-    description: String,
-    image: String, // optional image field
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    issuer: {
+      type: String,
+      trim: true,
+    },
+
+    year: {
+      type: Number,
+      min: 1950,
+      max: new Date().getFullYear(),
+    },
+
+    certificateUrl: {
+      type: String,
+      match: /^https?:\/\/.+/,
+    },
+
+    description: {
+      type: String,
+      trim: true,
+    },
+
+    image: {
+      type: String,
+      match: /^https?:\/\/.+/,
+    },
   },
   { timestamps: true }
 );

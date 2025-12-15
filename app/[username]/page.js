@@ -6,6 +6,8 @@ import { getUser, getPublicExtraProfile } from "@/lib/api/user";
 
 // sections
 import LatestProject from "@/utility/user/sections/LatestProject";
+import LatestAchievement from "@/utility/user/sections/LatestAchievement";
+
 import UserHero from "@/utility/user/UserHero";
 import About from "@/utility/user/sections/About";
 import Education from "@/utility/user/sections/Education";
@@ -89,6 +91,7 @@ export default function Page({ params }) {
 
         {/* Only render these sections if extra exists */}
         <LatestProject username={username} isOwner={user.isOwner}/>
+        <LatestAchievement username={username} isOwner={user.isOwner} />
         {extra && (
           <>
             <Education education={extra.education} />
