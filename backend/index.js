@@ -3,8 +3,8 @@ const cors = require("cors");
 const connectToMongo = require("./db");
 require("dotenv").config();
 
-// ✅ Clerk
-const { clerkMiddleware, verifyToken } = require("@clerk/express");
+// Clerk
+const { clerkMiddleware } = require("@clerk/express");
 
 // Initialize app
 const app = express();
@@ -14,31 +14,26 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// ✅ Clerk middleware (must be AFTER body parsing)
+// CONNECT TO MONGO
+connectToMongo();
+
+// 🔐 Apply Clerk ONLY to APIs (NOT globally)
 app.use(
+  "/api",
   clerkMiddleware({
     secretKey: process.env.CLERK_SECRET_KEY,
   })
 );
 
-// CONNECT TO MONGO
-connectToMongo();
+// Routes
+app.use("/api/user", require("./router/user/findUser"));
+app.use("/api/extra", require("./router/user/userExtra"));
+app.use("/api/achievements", require("./router/achievements"));
+app.use("/api/payments", require("./router/payments"));
+app.use("/api/projects", require("./router/projects"));
+app.use("/api/clerkuser", require("./router/user/ClerkUser"));
 
-// Import Routes
-const findUserRoutes = require("./router/user/findUser");
-const UserExtraRoutes = require("./router/user/userExtra");
-const UserAchievementRoutes = require("./router/achievements");
-const ClerkUser = require("./router/user/ClerkUser");
-const Payment = require("./router/payments");
-const Projects = require("./router/projects");
-// Use Routes
-app.use("/api/user", findUserRoutes);
-app.use("/api/extra",UserExtraRoutes);
-app.use("/api/achievements",UserAchievementRoutes);
-app.use("/api/payments",Payment);
-app.use("/api/projects", Projects);
-app.use("/api/clerkuser", ClerkUser);
-// Root route
+// Public root route (NO CLERK HERE)
 app.get("/", (req, res) => {
   res.send("Hello World! Backend is running 🚀");
 });
